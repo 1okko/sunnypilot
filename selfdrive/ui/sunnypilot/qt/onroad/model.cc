@@ -43,9 +43,11 @@ void ModelRendererSP::draw(QPainter &painter, const QRect &surface_rect) {
 
   bool blindspot = s->scene.blindspot_ui;
   bool rainbow = s->scene.rainbow_mode;
+  bool rocketfuel = s->scene.rocket_fuel;
 
   bool left_blindspot = car_state.getLeftBlindspot();
   bool right_blindspot = car_state.getRightBlindspot();
+  float accel = sm["carControl"].getCarControl().getActuators().getAccel();
 
   if (blindspot) {
     drawBlindspot(painter, surface_rect, left_blindspot, right_blindspot);
@@ -55,6 +57,10 @@ void ModelRendererSP::draw(QPainter &painter, const QRect &surface_rect) {
     drawRainbowPath(painter, surface_rect);
   } else {
     ModelRenderer::drawPath(painter, model, surface_rect.height());
+  }
+
+  if (rocketfuel) {
+    drawRocketFuel(painter, surface_rect, accel);
   }
 
   drawLeadStatus(painter, surface_rect.height(), surface_rect.width());
@@ -241,4 +247,21 @@ void ModelRendererSP::drawRainbowPath(QPainter &painter, const QRect &surface_re
 
   painter.setBrush(bg);
   painter.drawPolygon(track_vertices);
+}
+
+void ModelRendererSP::drawRocketFuel(QPainter &painter, const QRect &surface_rect, float accel) {
+  int widgetHeight = surface_rect.height();
+  float halfHeightAbs = std::abs(accel) * widgetHeight / 2.0f;
+  const float scannerWidth = 15;
+  QRect scannerRect;
+
+  if (accel > 0) {
+    painter.setBrush(QColor(0, 245, 0, 200));
+    scannerRect = QRect(0, widgetHeight / 2 - halfHeightAbs, scannerWidth, halfHeightAbs);
+  } else {
+    painter.setBrush(QColor(245, 0, 0, 200));
+    scannerRect = QRect(0, widgetHeight / 2, scannerWidth, halfHeightAbs);
+  }
+
+  painter.drawRect(scannerRect);
 }
